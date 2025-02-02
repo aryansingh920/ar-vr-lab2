@@ -128,7 +128,16 @@ struct Building {
     // TODO: Define UV buffer data
     // ---------------------------
     // ---------------------------
-    
+
+	GLfloat uv_buffer_data[48] = {
+		0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, // Front
+		0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, // Back
+		0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, // Left
+		0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, // Right
+		0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, // Top
+		0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f	// Bottom
+	};
+
 	// OpenGL buffers
 	GLuint vertexArrayID; 
 	GLuint vertexBufferID; 
@@ -164,7 +173,10 @@ struct Building {
 
 		// TODO: Create a vertex buffer object to store the UV data
 		// --------------------------------------------------------
-        // --------------------------------------------------------
+		glGenBuffers(1, &uvBufferID);
+		glBindBuffer(GL_ARRAY_BUFFER, uvBufferID);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(uv_buffer_data), uv_buffer_data, GL_STATIC_DRAW);
+		// --------------------------------------------------------
 
 		// Create an index buffer object to store the index data that defines triangle faces
 		glGenBuffers(1, &indexBufferID);
@@ -181,13 +193,23 @@ struct Building {
 		// Get a handle for our "MVP" uniform
 		mvpMatrixID = glGetUniformLocation(programID, "MVP");
 
-        // TODO: Load a texture 
-        // --------------------
-        // --------------------
+		// TODO: Load a texture
+		// --------------------
+		// Generate a random number between 1 and 4
+		int textureNum = 1 + (rand() % 4);
 
-        // TODO: Get a handle to texture sampler 
-        // -------------------------------------
-        // -------------------------------------
+		// Create the filename dynamically
+		std::string textureFile = "../lab2/facade" + std::to_string(textureNum) + ".jpg";
+
+		// Load the random texture
+		textureID = LoadTexture(textureFile.c_str());
+
+		// --------------------
+
+		// TODO: Get a handle to texture sampler
+		// -------------------------------------
+		textureSamplerID = glGetUniformLocation(programID, "textureSampler");
+		// -------------------------------------
 	}
 
 	void render(glm::mat4 cameraMatrix) {
@@ -203,12 +225,15 @@ struct Building {
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
 
-		// TODO: Model transform 
+		// TODO: Model transform
 		// -----------------------
-        glm::mat4 modelMatrix = glm::mat4();    
-        // Scale the box along each axis to make it look like a building
-        modelMatrix = glm::scale(modelMatrix, scale);
-        // -----------------------
+		// Model transformation
+		glm::mat4 modelMatrix = glm::mat4();
+		modelMatrix = glm::translate(modelMatrix, position);
+		modelMatrix = glm::scale(modelMatrix, scale);
+		modelMatrix = glm::translate(modelMatrix, glm::vec3(0, scale.y / 2, 0)); // Lift above ground
+
+		// -----------------------
 
 		// Set model-view-projection matrix
 		glm::mat4 mvp = cameraMatrix * modelMatrix;
@@ -216,7 +241,17 @@ struct Building {
 
 		// TODO: Enable UV buffer and texture sampler
 		// ------------------------------------------
-        // ------------------------------------------
+		// Enable UV buffer
+		glEnableVertexAttribArray(2);
+		glBindBuffer(GL_ARRAY_BUFFER, uvBufferID);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+		// Bind the texture
+		glEnable(GL_TEXTURE_2D);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glUniform1i(textureSamplerID, 0);
+		// ------------------------------------------
 
 		// Draw the box
 		glDrawElements(
@@ -236,9 +271,9 @@ struct Building {
 		glDeleteBuffers(1, &colorBufferID);
 		glDeleteBuffers(1, &indexBufferID);
 		glDeleteVertexArrays(1, &vertexArrayID);
-		// Enable these to clean up UV and texture buffers 
-		//glDeleteBuffers(1, &uvBufferID);
-		//glDeleteTextures(1, &textureID);
+		// Enable these to clean up UV and texture buffers
+		glDeleteBuffers(1, &uvBufferID);
+		glDeleteTextures(1, &textureID);
 		glDeleteProgram(programID);
 	}
 }; 
@@ -295,29 +330,63 @@ int main(void)
 	// TODO: Create more buildings
     // ---------------------------
 	std::vector<Building> buildings;
+	for (int x = -4; x <= 4; ++x)
+	{
+		for (int z = -4; z <= 4; ++z)
+		{
+			Building b;
+			float height = 10 + (rand() % 50); // Random height between 10-50
+			b.initialize(glm::vec3(x * 32, 0, z * 32), glm::vec3(16, height, 16));
+			buildings.push_back(b);
+		}
+	}
 	Building b;
 	b.initialize(glm::vec3(0, 0, 0), glm::vec3(30, 30, 30));
 	buildings.push_back(b);
-    // ---------------------------
+	Building tallest;
+	tallest.initialize(glm::vec3(0, 0, 0), glm::vec3(20, 100, 20)); // Fixed tallest
+	buildings.push_back(tallest);
 
-	// TODO: Prepare a perspective camera 
+	for (int x = -4; x <= 4; ++x)
+	{
+		for (int z = -4; z <= 4; ++z)
+		{
+			if (x == 0 && z == 0)
+				continue; // Skip center (already placed)
+
+			Building b;
+			float height = 10 + (rand() % 50);
+			b.initialize(glm::vec3(x * 32, 0, z * 32), glm::vec3(16, height, 16));
+			buildings.push_back(b);
+		}
+	}
+
+	// ---------------------------
+
+	// TODO: Prepare a perspective camera
 	// ------------------------------------
-    glm::mat4 projectionMatrix;
-    // ------------------------------------
+	// Prepare a perspective camera
+
+	// glm::mat4 projectionMatrix;
+	glm::mat4 projectionMatrix = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 1000.0f);
+
+	// ------------------------------------
 
 	do
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// TODO: Set camera view matrix 
+		// TODO: Set camera view matrix
 		// ------------------------------
-		// Note that we construct the view matrix in the loop to support view changes initiated by keyboard events. If your camera is fixed, you can move this function out of the loop. 
-        // ------------------------------
-        glm::mat4 viewMatrix;
-        // ------------------------------
+		// Set camera view matrix
 
+		// Note that we construct the view matrix in the loop to support view changes initiated by keyboard events. If your camera is fixed, you can move this function out of the loop.
+		// ------------------------------
+		// glm::mat4 viewMatrix;
+		glm::mat4 viewMatrix = glm::lookAt(eye_center, lookat, up);
+		// ------------------------------
 
-        // Animation
+		// Animation
 		static double lastTime = glfwGetTime();
 		double currentTime = glfwGetTime();
 		float deltaTime = float(currentTime - lastTime);
