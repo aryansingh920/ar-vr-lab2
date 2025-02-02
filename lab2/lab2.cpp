@@ -368,7 +368,11 @@ int main(void)
 	// Prepare a perspective camera
 
 	// glm::mat4 projectionMatrix;
-	glm::mat4 projectionMatrix = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 1000.0f);
+	// glm::mat4 projectionMatrix = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 1000.0f);
+	glm::float32 FoV = 45;
+	glm::float32 zNear = 0.1f;	  // Lower it to allow closer objects
+	glm::float32 zFar = 10000.0f; // Increase it to allow more depth
+	glm::mat4 projectionMatrix = glm::perspective(glm::radians(FoV), 4.0f / 3.0f, zNear, zFar);
 
 	// ------------------------------------
 
