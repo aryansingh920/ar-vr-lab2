@@ -462,7 +462,7 @@ int main(void)
 		{
 			Building b;
 			float height = 10 + (rand() % 50); // Random height between 10-50
-			b.initialize(glm::vec3(x * 32, 0, z * 32), glm::vec3(16, height, 16));
+			b.initialize(glm::vec3(x * 50, 0, z * 50), glm::vec3(16, height, 16));
 			buildings.push_back(b);
 		}
 	}
