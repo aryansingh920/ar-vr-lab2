@@ -25,123 +25,246 @@ static float viewPolar = 0.0f;
 static float viewDistance = 300.0f;
 static bool rotating = false;
 
-struct Building {
-	glm::vec3 position;		// Position of the box 
-	glm::vec3 scale;		// Size of the box in each axis
-	
-	GLfloat vertex_buffer_data[72] = {	// Vertex definition for a canonical box
-		// Front face
-		-1.0f, -1.0f, 1.0f, 
-		1.0f, -1.0f, 1.0f, 
-		1.0f, 1.0f, 1.0f, 
-		-1.0f, 1.0f, 1.0f, 
-		
-		// Back face 
-		1.0f, -1.0f, -1.0f, 
-		-1.0f, -1.0f, -1.0f, 
-		-1.0f, 1.0f, -1.0f, 
-		1.0f, 1.0f, -1.0f,
-		
-		// Left face
-		-1.0f, -1.0f, -1.0f, 
-		-1.0f, -1.0f, 1.0f, 
-		-1.0f, 1.0f, 1.0f, 
-		-1.0f, 1.0f, -1.0f, 
+struct Building
+{
+	glm::vec3 position; // Position of the box
+	glm::vec3 scale;	// Size of the box in each axis
 
-		// Right face 
-		1.0f, -1.0f, 1.0f, 
-		1.0f, -1.0f, -1.0f, 
-		1.0f, 1.0f, -1.0f, 
-		1.0f, 1.0f, 1.0f,
+	GLfloat vertex_buffer_data[72] = {
+		// Vertex definition for a canonical box
+		// Front face
+		-1.0f,
+		-1.0f,
+		1.0f,
+		1.0f,
+		-1.0f,
+		1.0f,
+		1.0f,
+		1.0f,
+		1.0f,
+		-1.0f,
+		1.0f,
+		1.0f,
+
+		// Back face
+		1.0f,
+		-1.0f,
+		-1.0f,
+		-1.0f,
+		-1.0f,
+		-1.0f,
+		-1.0f,
+		1.0f,
+		-1.0f,
+		1.0f,
+		1.0f,
+		-1.0f,
+
+		// Left face
+		-1.0f,
+		-1.0f,
+		-1.0f,
+		-1.0f,
+		-1.0f,
+		1.0f,
+		-1.0f,
+		1.0f,
+		1.0f,
+		-1.0f,
+		1.0f,
+		-1.0f,
+
+		// Right face
+		1.0f,
+		-1.0f,
+		1.0f,
+		1.0f,
+		-1.0f,
+		-1.0f,
+		1.0f,
+		1.0f,
+		-1.0f,
+		1.0f,
+		1.0f,
+		1.0f,
 
 		// Top face
-		-1.0f, 1.0f, 1.0f, 
-		1.0f, 1.0f, 1.0f, 
-		1.0f, 1.0f, -1.0f, 
-		-1.0f, 1.0f, -1.0f, 
+		-1.0f,
+		1.0f,
+		1.0f,
+		1.0f,
+		1.0f,
+		1.0f,
+		1.0f,
+		1.0f,
+		-1.0f,
+		-1.0f,
+		1.0f,
+		-1.0f,
 
 		// Bottom face
-		-1.0f, -1.0f, -1.0f, 
-		1.0f, -1.0f, -1.0f, 
-		1.0f, -1.0f, 1.0f, 
-		-1.0f, -1.0f, 1.0f, 
+		-1.0f,
+		-1.0f,
+		-1.0f,
+		1.0f,
+		-1.0f,
+		-1.0f,
+		1.0f,
+		-1.0f,
+		1.0f,
+		-1.0f,
+		-1.0f,
+		1.0f,
 	};
 
 	GLfloat color_buffer_data[72] = {
 		// Front, red
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
+		1.0f,
+		0.0f,
+		0.0f,
+		1.0f,
+		0.0f,
+		0.0f,
+		1.0f,
+		0.0f,
+		0.0f,
+		1.0f,
+		0.0f,
+		0.0f,
 
 		// Back, yellow
-		1.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f,
+		1.0f,
+		1.0f,
+		0.0f,
+		1.0f,
+		1.0f,
+		0.0f,
+		1.0f,
+		1.0f,
+		0.0f,
+		1.0f,
+		1.0f,
+		0.0f,
 
 		// Left, green
-		0.0f, 1.0f, 0.0f, 
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
+		0.0f,
+		1.0f,
+		0.0f,
+		0.0f,
+		1.0f,
+		0.0f,
+		0.0f,
+		1.0f,
+		0.0f,
+		0.0f,
+		1.0f,
+		0.0f,
 
 		// Right, cyan
-		0.0f, 1.0f, 1.0f, 
-		0.0f, 1.0f, 1.0f, 
-		0.0f, 1.0f, 1.0f, 
-		0.0f, 1.0f, 1.0f, 
+		0.0f,
+		1.0f,
+		1.0f,
+		0.0f,
+		1.0f,
+		1.0f,
+		0.0f,
+		1.0f,
+		1.0f,
+		0.0f,
+		1.0f,
+		1.0f,
 
 		// Top, blue
-		0.0f, 0.0f, 1.0f, 
-		0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f,
+		0.0f,
+		0.0f,
+		1.0f,
+		0.0f,
+		0.0f,
+		1.0f,
+		0.0f,
+		0.0f,
+		1.0f,
+		0.0f,
+		0.0f,
+		1.0f,
 
 		// Bottom, magenta
-		1.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 1.0f, 
-		1.0f, 0.0f, 1.0f, 
-		1.0f, 0.0f, 1.0f,  
+		1.0f,
+		0.0f,
+		1.0f,
+		1.0f,
+		0.0f,
+		1.0f,
+		1.0f,
+		0.0f,
+		1.0f,
+		1.0f,
+		0.0f,
+		1.0f,
 	};
 
-	GLuint index_buffer_data[36] = {		// 12 triangle faces of a box
-		0, 1, 2, 	
-		0, 2, 3, 
-		
-		4, 5, 6, 
-		4, 6, 7, 
+	GLuint index_buffer_data[36] = {
+		// 12 triangle faces of a box
+		0,
+		1,
+		2,
+		0,
+		2,
+		3,
 
-		8, 9, 10, 
-		8, 10, 11, 
+		4,
+		5,
+		6,
+		4,
+		6,
+		7,
 
-		12, 13, 14, 
-		12, 14, 15, 
+		8,
+		9,
+		10,
+		8,
+		10,
+		11,
 
-		16, 17, 18, 
-		16, 18, 19, 
+		12,
+		13,
+		14,
+		12,
+		14,
+		15,
 
-		20, 21, 22, 
-		20, 22, 23, 
+		16,
+		17,
+		18,
+		16,
+		18,
+		19,
+
+		20,
+		21,
+		22,
+		20,
+		22,
+		23,
 	};
-
-    // TODO: Define UV buffer data
-    // ---------------------------
-    // ---------------------------
-
 	GLfloat uv_buffer_data[48] = {
-		0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, // Front
-		0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, // Back
-		0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, // Left
-		0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, // Right
-		0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, // Top
-		0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f	// Bottom
-	};
+		// Front
+		0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+		// Back
+		0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+		// Left
+		0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+		// Right
+		0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+		// Top
+		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+		// Bottom
+		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 
 	// OpenGL buffers
-	GLuint vertexArrayID; 
-	GLuint vertexBufferID; 
-	GLuint indexBufferID; 
+	GLuint vertexArrayID;
+	GLuint vertexBufferID;
+	GLuint indexBufferID;
 	GLuint colorBufferID;
 	GLuint uvBufferID;
 	GLuint textureID;
@@ -151,7 +274,8 @@ struct Building {
 	GLuint textureSamplerID;
 	GLuint programID;
 
-	void initialize(glm::vec3 position, glm::vec3 scale) {
+	void initialize(glm::vec3 position, glm::vec3 scale)
+	{
 		// Define scale of the building geometry
 		this->position = position;
 		this->scale = scale;
@@ -160,23 +284,24 @@ struct Building {
 		glGenVertexArrays(1, &vertexArrayID);
 		glBindVertexArray(vertexArrayID);
 
-		// Create a vertex buffer object to store the vertex data		
+		// Create a vertex buffer object to store the vertex data
 		glGenBuffers(1, &vertexBufferID);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_buffer_data), vertex_buffer_data, GL_STATIC_DRAW);
 
+		for (int i = 0; i < 72; ++i)
+			color_buffer_data[i] = 1.0f;
+
 		// Create a vertex buffer object to store the color data
-        // TODO: 
+		// TODO:
 		glGenBuffers(1, &colorBufferID);
 		glBindBuffer(GL_ARRAY_BUFFER, colorBufferID);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(color_buffer_data), color_buffer_data, GL_STATIC_DRAW);
 
 		// TODO: Create a vertex buffer object to store the UV data
-		// --------------------------------------------------------
 		glGenBuffers(1, &uvBufferID);
 		glBindBuffer(GL_ARRAY_BUFFER, uvBufferID);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(uv_buffer_data), uv_buffer_data, GL_STATIC_DRAW);
-		// --------------------------------------------------------
 
 		// Create an index buffer object to store the index data that defines triangle faces
 		glGenBuffers(1, &indexBufferID);
@@ -194,7 +319,6 @@ struct Building {
 		mvpMatrixID = glGetUniformLocation(programID, "MVP");
 
 		// TODO: Load a texture
-		// --------------------
 		// Generate a random number between 1 and 4
 		int textureNum = 1 + (rand() % 4);
 
@@ -204,15 +328,12 @@ struct Building {
 		// Load the random texture
 		textureID = LoadTexture(textureFile.c_str());
 
-		// --------------------
-
 		// TODO: Get a handle to texture sampler
-		// -------------------------------------
 		textureSamplerID = glGetUniformLocation(programID, "textureSampler");
-		// -------------------------------------
 	}
 
-	void render(glm::mat4 cameraMatrix) {
+	void render(glm::mat4 cameraMatrix)
+	{
 		glUseProgram(programID);
 
 		glEnableVertexAttribArray(0);
@@ -227,12 +348,11 @@ struct Building {
 
 		// TODO: Model transform
 		// -----------------------
-		// Model transformation
 		glm::mat4 modelMatrix = glm::mat4();
 		modelMatrix = glm::translate(modelMatrix, position);
+		// Scale the box along each axis to make it look like a building
 		modelMatrix = glm::scale(modelMatrix, scale);
-		modelMatrix = glm::translate(modelMatrix, glm::vec3(0, scale.y / 2, 0)); // Lift above ground
-
+		modelMatrix = glm::translate(modelMatrix, glm::vec3(0, 1, 0));
 		// -----------------------
 
 		// Set model-view-projection matrix
@@ -240,49 +360,54 @@ struct Building {
 		glUniformMatrix4fv(mvpMatrixID, 1, GL_FALSE, &mvp[0][0]);
 
 		// TODO: Enable UV buffer and texture sampler
-		// ------------------------------------------
-		// Enable UV buffer
 		glEnableVertexAttribArray(2);
 		glBindBuffer(GL_ARRAY_BUFFER, uvBufferID);
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
-
-		// Bind the texture
-		glEnable(GL_TEXTURE_2D);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textureID);
 		glUniform1i(textureSamplerID, 0);
-		// ------------------------------------------
 
 		// Draw the box
 		glDrawElements(
-			GL_TRIANGLES,      // mode
-			36,    			   // number of indices
-			GL_UNSIGNED_INT,   // type
-			(void*)0           // element array buffer offset
+			GL_TRIANGLES,	 // mode
+			36,				 // number of indices
+			GL_UNSIGNED_INT, // type
+			(void *)0		 // element array buffer offset
 		);
 
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
-        //glDisableVertexAttribArray(2);
+		// glDisableVertexAttribArray(2);
 	}
 
-	void cleanup() {
+	void cleanup()
+	{
 		glDeleteBuffers(1, &vertexBufferID);
 		glDeleteBuffers(1, &colorBufferID);
 		glDeleteBuffers(1, &indexBufferID);
 		glDeleteVertexArrays(1, &vertexArrayID);
 		// Enable these to clean up UV and texture buffers
-		glDeleteBuffers(1, &uvBufferID);
-		glDeleteTextures(1, &textureID);
+		// glDeleteBuffers(1, &uvBufferID);
+		// glDeleteTextures(1, &textureID);
 		glDeleteProgram(programID);
 	}
-}; 
+};
 
 static float randomFloat() {
 	float r = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 	return r;
 }
+static void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
+{
+	viewDistance -= yoffset * 10.0f; // Adjust zoom speed by modifying the multiplier
+	if (viewDistance < 50.0f)
+		viewDistance = 50.0f; // Prevent too much zoom-in
+	if (viewDistance > 1000.0f)
+		viewDistance = 1000.0f; // Prevent too much zoom-out
 
+	eye_center.x = viewDistance * cos(viewAzimuth);
+	eye_center.z = viewDistance * sin(viewAzimuth);
+}
 int main(void)
 {
 	// Initialise GLFW
@@ -309,6 +434,7 @@ int main(void)
 
 	// Ensure we can capture the escape key being pressed below
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetKeyCallback(window, key_callback);
 
 	// Load OpenGL functions, gladLoadGL returns the loaded version, 0 on error.
